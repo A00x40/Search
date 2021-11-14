@@ -1,4 +1,5 @@
 # Search
+
 Informed and UnInformed search techniques implemented using python
 
 ## Problem Set 1: Search
@@ -21,8 +22,6 @@ In the attached python files, you will find locations marked with:
 
     #TODO: ADD YOUR CODE HERE
     Code Implementation
-
-
 
 ## Problem Definitions
 
@@ -108,4 +107,3 @@ In case your computer has a different speed compared to mine (which I will use f
     python play_dungeon.py dungeons\dungeon3.txt -a astar -hf weak --checks
 
 If your computer is too slow, you can increase the time limit in the testcases files in the folder `q6`.
-

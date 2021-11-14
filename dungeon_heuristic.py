@@ -11,45 +11,6 @@ def weak_heuristic(problem: DungeonProblem, state: DungeonState):
 
 #TODO: Import any modules and write any functions you want to use
 
-def H_BFS(problem, initial_state, goal_state, state_dist):
-    
-    if initial_state == goal_state:
-        state_dist[(initial_state, goal_state)] = 0
-        return 
-
-    frontier = deque()
-    frontier.append(initial_state)
-
-    explored = set()
-
-    parent = dict()
-    parent[initial_state] = None
-
-    while frontier:
-        state = frontier.popleft()
-        explored.add(state)
-
-        for action in problem.get_actions(state):
-            child = problem.get_successor(state, action)
-            
-            if child not in frontier and child not in explored:
-                if child == goal_state:
-                    #
-                    goal = child
-                    
-                    path = []
-                    while goal != None:
-                        path.insert(0, goal)
-                        goal = parent[goal]
-
-                    for i in range(len(path)):
-                        state_dist[(path[i], goal_state)] = len(path[i:]) - 1
-
-                    return 
-
-                frontier.append(child)
-                parent[child] = state
-                
 def strong_heuristic(problem: DungeonProblem, state: DungeonState) -> float:
     #TODO: ADD YOUR CODE HERE
     #IMPORTANT: DO NOT USE "problem.is_goal" HERE.
@@ -57,15 +18,47 @@ def strong_heuristic(problem: DungeonProblem, state: DungeonState) -> float:
     # which is considered the number of is_goal calls during the search
     #NOTE: you can use problem.cache() to get a dictionary in which you can store information that will persist between calls of this function
     # This could be useful if you want to store the results heavy computations that can be cached and used across multiple calls of this function
-    state_dist = problem.cache()
-
-    for coin in state.remaining_coins:
-        if (state.player, coin) not in state_dist:
-            H_BFS(problem, state, coin, state_dist)
     
-    dist = manhattan_distance(state.player, problem.layout.exit)
-    for coin in state.remaining_coins:
-        dist = max(dist, state_dist[(state.player, coin)])
-
-    return dist
     
+    exit_dist = manhattan_distance(state.player, problem.layout.exit)
+
+    max_coin_dist = 0
+    furthest_coin = None
+
+    max_coin_dist2 = 0
+    furthest_coin2 = None
+
+    # Get furthest coin
+    # And the Distance from state to furthest coin then to exit
+    for coin in state.remaining_coins:
+        coin_dist = manhattan_distance(state.player, coin) + manhattan_distance(coin, problem.layout.exit)
+        if coin_dist > max_coin_dist:
+            max_coin_dist = coin_dist
+            furthest_coin = coin
+
+    # Get the second furthest coin
+    for coin in state.remaining_coins:
+        coin_dist = manhattan_distance(state.player, coin) + manhattan_distance(coin, problem.layout.exit)
+        if coin_dist > max_coin_dist2:
+            max_coin_dist2 = coin_dist
+            furthest_coin2 = coin
+
+    '''
+    If 2 or more remaining
+    Hueristic = distance(state, second furthest coin) 
+
+        + distance(second furthest coin, furthest coin)
+
+        + distance(furthest coin, dungeon exit)
+    '''
+    if len(state.remaining_coins) > 1:
+        return manhattan_distance(state.player, furthest_coin2) + manhattan_distance(furthest_coin2, furthest_coin) + manhattan_distance(furthest_coin, problem.layout.exit)
+
+    # One remaining coin
+    # Distance from state to furthest coin then to exit
+    elif len(state.remaining_coins) == 1:
+        return max_coin_dist
+
+    # No coins
+    # Distance from state to exit
+    return exit_dist
